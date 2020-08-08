@@ -17,6 +17,9 @@ moxing = keras.Sequential(
     [
         keras.layers.Flatten(input_shape=xunlianshuju.image_shape),
         keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
         keras.layers.Dense(7)
     ])
 
