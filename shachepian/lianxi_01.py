@@ -27,7 +27,7 @@ print('------ 数据信息 -----------------------------------------------------
 print("xunlian_shuju.image_shape:  {}".format(xunlian_shuju.image_shape))
 print("len(xunlian_shuju):  {}".format(len(xunlian_shuju)))
 print("xunlian_shuju.batch_size:  {}".format(xunlian_shuju.batch_size))
-print("xunlian_shuju.filenames:  ".format(xunlian_shuju.n))
+print("xunlian_shuju.n:  {}".format(xunlian_shuju.n))
 print('----------------------------------------------------------------------------')
 
 #############################################################################################
@@ -35,9 +35,10 @@ print('-------------------------------------------------------------------------
 #############################################################################################
 
 moxing = keras.Sequential()
-moxing.add(keras.layers.Input(shape=xunlian_shuju.image_shape))
+moxing.add(keras.layers.InputLayer(input_shape=xunlian_shuju.image_shape))
 moxing.add(keras.layers.experimental.preprocessing.RandomFlip('horizontal'))
 moxing.add(keras.layers.experimental.preprocessing.RandomRotation(0.2))
+# moxing.add(keras.layers.experimental.preprocessing.Rescaling())
 moxing.add(keras.layers.Conv2D(32, (3, 3), activation='relu'))
 moxing.add(keras.layers.MaxPooling2D((2, 2)))
 moxing.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
