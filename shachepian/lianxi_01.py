@@ -1,5 +1,3 @@
-import datetime
-
 from tensorflow import keras
 from tensorflow.keras.preprocessing import image
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
@@ -33,22 +31,28 @@ print('-------------------------------------------------------------------------
 #############################################################################################
 # 训练
 #############################################################################################
+# tf.keras.layers.experimental.preprocessing.RandomFlip('horizontal'),
+# tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
+# rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)
 
 moxing = keras.applications.MobileNetV2(input_shape=xunlian_shuju.image_shape,
                                         include_top=False,
                                         weights='imagenet')
-moxing.trainable = False
 
-moxing.summary()
+print(moxing.input_shape)
 
-moxing.compile(
-    optimizer='adam',
-    loss=keras.losses.CategoricalCrossentropy(),
-    metrics=['accuracy']
-)
-
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+# moxing.trainable = False
+#
+# moxing.summary()
+#
+# moxing.compile(
+#     optimizer='adam',
+#     loss=keras.losses.CategoricalCrossentropy(),
+#     metrics=['accuracy']
+# )
+#
+# log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 # moxing.fit(
 #     x=xunlian_shuju,
