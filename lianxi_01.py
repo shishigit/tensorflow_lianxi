@@ -1,3 +1,5 @@
+import datetime
+
 from tensorflow import keras
 from tensorflow.keras.preprocessing import image
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
@@ -25,54 +27,56 @@ print('------ 数据信息 -----------------------------------------------------
 print("xunlian_shuju.image_shape:  {}".format(xunlian_shuju.image_shape))
 print("len(xunlian_shuju):  {}".format(len(xunlian_shuju)))
 print("xunlian_shuju.batch_size:  {}".format(xunlian_shuju.batch_size))
-print("xunlian_shuju.n:  {}".format(xunlian_shuju.n))
+print("xunlian_shuju.filenames:  ".format(xunlian_shuju.n))
 print('----------------------------------------------------------------------------')
 
 #############################################################################################
 # 训练
 #############################################################################################
-# tf.keras.layers.experimental.preprocessing.RandomFlip('horizontal'),
-# tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
-# rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)
 
-moxing = keras.applications.MobileNetV2(input_shape=xunlian_shuju.image_shape,
-                                        include_top=False,
-                                        weights='imagenet')
+moxing = keras.Sequential()
+moxing.add(keras.layers.Input(shape=xunlian_shuju.image_shape))
+moxing.add(keras.layers.experimental.preprocessing.RandomFlip('horizontal'))
+moxing.add(keras.layers.experimental.preprocessing.RandomRotation(0.2))
+moxing.add(keras.layers.Conv2D(32, (3, 3), activation='relu'))
+moxing.add(keras.layers.MaxPooling2D((2, 2)))
+moxing.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
+moxing.add(keras.layers.MaxPooling2D((2, 2)))
+moxing.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
+moxing.add(keras.layers.Flatten())
+moxing.add(keras.layers.Dense(64, activation='relu'))
+moxing.add(keras.layers.Dense(xunlian_shuju.num_classes))
 
-print(moxing.input_shape)
+moxing.summary()
 
-# moxing.trainable = False
-#
-# moxing.summary()
-#
-# moxing.compile(
-#     optimizer='adam',
-#     loss=keras.losses.CategoricalCrossentropy(),
-#     metrics=['accuracy']
-# )
-#
-# log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+moxing.compile(
+    optimizer='adam',
+    loss=keras.losses.CategoricalCrossentropy(),
+    metrics=['accuracy']
+)
 
-# moxing.fit(
-#     x=xunlian_shuju,
-#     epochs=1,
-#     verbose=1,
-#     callbacks=[tensorboard_callback]
-# )
-#
-# #############################################################################################
-# # 测试
-# #############################################################################################
-#
-# ceshi_shuju = image.DirectoryIterator(
-#     directory=ceshi_wenjianjia,
-#     image_data_generator=ImageDataGenerator(data_format='channels_first', dtype='float64'),
-# )
-#
-# test_loss, test_acc = moxing.evaluate(
-#     x=ceshi_shuju,
-#     verbose=2
-# )
-#
-# print('\nTest accuracy:', test_acc)
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+moxing.fit(
+    x=xunlian_shuju,
+    epochs=1,
+    verbose=1,
+    callbacks=[tensorboard_callback]
+)
+
+#############################################################################################
+# 测试
+#############################################################################################
+
+ceshi_shuju = image.DirectoryIterator(
+    directory=ceshi_wenjianjia,
+    image_data_generator=ImageDataGenerator(data_format='channels_first', dtype='float64'),
+)
+
+test_loss, test_acc = moxing.evaluate(
+    x=ceshi_shuju,
+    verbose=2
+)
+
+print('\nTest accuracy:', test_acc)
