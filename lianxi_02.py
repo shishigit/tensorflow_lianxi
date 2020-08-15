@@ -47,6 +47,7 @@ x = keras.layers.experimental.preprocessing.RandomRotation(0.2)(x)
 x = base_model(x, training=False)
 x = keras.layers.GlobalAveragePooling2D()(x)
 x = keras.layers.Dropout(0.2)(x)
+x = keras.layers.Dense(100)(x)
 shuchu = keras.layers.Dense(xunlian_shuju.num_classes,activation='softmax')(x)
 
 moxing = keras.Model(shuru, shuchu)
