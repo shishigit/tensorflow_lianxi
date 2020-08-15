@@ -43,7 +43,7 @@ base_model.trainable = False
 shuru = keras.layers.Input(shape=xunlian_shuju.image_shape)
 x = keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)(shuru)
 x = keras.layers.experimental.preprocessing.RandomFlip('horizontal')(x)
-x = keras.layers.experimental.preprocessing.RandomRotation(0.2)(x)
+x = keras.layers.experimental.preprocessing.RandomRotation(0.1)(x)
 x = base_model(x, training=False)
 x = keras.layers.GlobalAveragePooling2D()(x)
 x = keras.layers.Dropout(0.2)(x)
@@ -62,7 +62,7 @@ moxing.compile(
 
 moxing.fit(
     x=xunlian_shuju,
-    epochs=500,
+    epochs=15,
 )
 
 #############################################################################################
