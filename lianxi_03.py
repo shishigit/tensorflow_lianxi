@@ -74,9 +74,8 @@ ceshi_shuju = image.DirectoryIterator(
     image_data_generator=ImageDataGenerator(data_format='channels_first', dtype='float64'),
 )
 
-test_loss, test_acc = moxing.evaluate(
+moxing.evaluate(
     x=ceshi_shuju,
     verbose=2
 )
 
-print('\nTest accuracy:', test_acc)
