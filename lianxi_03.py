@@ -1,5 +1,3 @@
-import datetime
-
 from tensorflow import keras
 from tensorflow.keras.preprocessing import image
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
