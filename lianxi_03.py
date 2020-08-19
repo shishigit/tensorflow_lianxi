@@ -42,7 +42,7 @@ qianyimoxing.trainable = False
 
 shuru = keras.layers.Input(shape=xunlian_shuju.image_shape)
 x = keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)(shuru)
-x = keras.layers.experimental.preprocessing.RandomFlip('horizontal')(x)
+x = keras.layers.experimental.preprocessing.RandomFlip()(x)
 x = keras.layers.experimental.preprocessing.RandomRotation(0.1)(x)
 x = qianyimoxing(x, training=False)
 x = keras.layers.GlobalAveragePooling2D()(x)
