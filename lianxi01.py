@@ -4,7 +4,6 @@ from typing import Any
 import tensorflow
 from tensorflow.python.data.ops.dataset_ops import BatchDataset
 
-
 #############################################################################################
 # 参数
 #############################################################################################
@@ -85,7 +84,6 @@ moxing.add(tensorflow.keras.layers.Conv2D(64, (3, 3), activation='relu'))
 moxing.add(tensorflow.keras.layers.Flatten())
 moxing.add(tensorflow.keras.layers.Dense(64, activation='relu'))
 moxing.add(tensorflow.keras.layers.Dense(shujuchuli.yangben_zhongleishu(), activation='softmax'))
-
 moxing.summary()
 
 moxing.compile(
