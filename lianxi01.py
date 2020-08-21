@@ -62,7 +62,8 @@ class Shujuchuli:
             generator=self.__tupian_generator,
             output_types=(tensorflow.dtypes.float32, tensorflow.dtypes.float32),
             output_shapes=((2052, 2592, 1), 7),
-        ).batch(batch_size=3)
+        )
+        self.shujuji = self.shujuji.batch(batch_size=3)
 
 
 shujuchuli = Shujuchuli(Canshu.wenjianjia_xunlian)
@@ -76,11 +77,6 @@ moxing = tensorflow.keras.Sequential()
 moxing.add(tensorflow.keras.layers.Input(shape=(2052, 2592, 1)))
 moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomFlip('horizontal'))
 moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomRotation(1))
-moxing.add(tensorflow.keras.layers.Conv2D(32, (3, 3), activation='relu'))
-moxing.add(tensorflow.keras.layers.MaxPooling2D((2, 2)))
-moxing.add(tensorflow.keras.layers.Conv2D(64, (3, 3), activation='relu'))
-moxing.add(tensorflow.keras.layers.MaxPooling2D((2, 2)))
-moxing.add(tensorflow.keras.layers.Conv2D(64, (3, 3), activation='relu'))
 moxing.add(tensorflow.keras.layers.Flatten())
 moxing.add(tensorflow.keras.layers.Dense(64, activation='relu'))
 moxing.add(tensorflow.keras.layers.Dense(shujuchuli.yangben_zhongleishu(), activation='softmax'))
