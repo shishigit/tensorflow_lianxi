@@ -53,6 +53,7 @@ class Shujuchuli:
                 linshiwenjian = tensorflow.image.decode_image(contents=linshiwenjian, dtype=tensorflow.float32)
                 linshiwenjian = tensorflow.concat([linshiwenjian, self.__zero, self.__zero], axis=2)
                 lsbiaoqian = dangqianwenjianjia.split('/')[-1]
+                print('eeeeeeeeeeeee')
                 yield linshiwenjian, self.__onehot[lsbiaoqian]
 
     def shengcheng_shujuji(self):
@@ -106,8 +107,8 @@ moxing.compile(
 
 moxing.fit(
     x=shujuchuli.shujuji,
-    epochs=15,
-)
+    steps_per_epoch=1,
+    epochs=5)
 
 #############################################################################################
 # 测试
@@ -118,7 +119,8 @@ shujuchuli.shengcheng_shujuji()
 
 test_loss, test_acc = moxing.evaluate(
     x=shujuchuli.shujuji,
-    verbose=2
+    verbose=2,
+    steps=10
 )
 
 print('\nTest accuracy:', test_acc)
