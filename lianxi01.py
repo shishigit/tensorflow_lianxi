@@ -26,6 +26,7 @@ class Shujuchuli:
         self.__wenjianjia: str = wenjianjia
         self.__onehot: dict = {}
         self.shujuji: BatchDataset = Any
+        self.__zero = tensorflow.zeros([2052, 2592, 1])
 
         self.__shengcheng_zidian()
 
@@ -50,7 +51,7 @@ class Shujuchuli:
             for wenjian in wenjians:
                 linshiwenjian = tensorflow.io.read_file(os.path.join(dangqianwenjianjia, wenjian))
                 linshiwenjian = tensorflow.image.decode_image(contents=linshiwenjian, dtype=tensorflow.float32)
-                linshiwenjian = linshiwenjian / 127.5 - 1
+                linshiwenjian = tensorflow.concat([linshiwenjian, self.__zero, self.__zero], axis=2)
                 lsbiaoqian = dangqianwenjianjia.split('/')[-1]
                 yield linshiwenjian, self.__onehot[lsbiaoqian]
 
@@ -61,7 +62,7 @@ class Shujuchuli:
         self.shujuji = tensorflow.data.Dataset.from_generator(
             generator=self.__tupian_generator,
             output_types=(tensorflow.dtypes.float32, tensorflow.dtypes.float32),
-            output_shapes=((2052, 2592, 1), 7),
+            output_shapes=((2052, 2592, 3), 7),
         )
         self.shujuji = self.shujuji.batch(batch_size=3)
 
@@ -73,13 +74,28 @@ shujuchuli.shengcheng_shujuji()
 # 构建模型
 #############################################################################################
 
-moxing = tensorflow.keras.Sequential()
-moxing.add(tensorflow.keras.layers.Input(shape=(2052, 2592, 1)))
-moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomFlip('horizontal'))
-moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomRotation(1))
-moxing.add(tensorflow.keras.layers.Flatten())
-moxing.add(tensorflow.keras.layers.Dense(64, activation='relu'))
-moxing.add(tensorflow.keras.layers.Dense(shujuchuli.yangben_zhongleishu(), activation='softmax'))
+#############################################################################################
+# 训练
+#############################################################################################
+base_model = tensorflow.keras.applications.MobileNetV2(
+    input_shape=(2052, 2592, 3),
+    include_top=False,
+    weights='imagenet',
+)
+base_model.trainable = False
+
+shuru = tensorflow.keras.layers.Input(shape=(2052, 2592, 3))
+x = tensorflow.keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)(shuru)
+x = tensorflow.keras.layers.experimental.preprocessing.RandomFlip('horizontal')(x)
+x = tensorflow.keras.layers.experimental.preprocessing.RandomRotation(1)(x)
+x = base_model(x, training=False)
+x = tensorflow.keras.layers.GlobalAveragePooling2D()(x)
+x = tensorflow.keras.layers.Dense(100, activation=tensorflow.keras.activations.relu)(x)
+x = tensorflow.keras.layers.Dropout(0.2)(x)
+shuchu = tensorflow.keras.layers.Dense(7, activation='softmax')(x)
+
+moxing = tensorflow.keras.Model(shuru, shuchu)
+
 moxing.summary()
 
 moxing.compile(
@@ -90,13 +106,22 @@ moxing.compile(
 
 moxing.fit(
     x=shujuchuli.shujuji,
-    epochs=1,
-    verbose=1
+    epochs=15,
 )
 
 #############################################################################################
-# 训练
+# 测试
 #############################################################################################
+
+shujuchuli = Shujuchuli(Canshu.wenjianjia_ceshi)
+shujuchuli.shengcheng_shujuji()
+
+test_loss, test_acc = moxing.evaluate(
+    x=shujuchuli.shujuji,
+    verbose=2
+)
+
+print('\nTest accuracy:', test_acc)
 
 #############################################################################################
 # 测试
