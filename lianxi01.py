@@ -1,11 +1,13 @@
 import os
-from typing import Union
+from typing import Any
 
 import tensorflow
+from tensorflow.python.data.ops.dataset_ops import BatchDataset
+
+
 #############################################################################################
 # 参数
 #############################################################################################
-from tensorflow.python.data.ops.dataset_ops import DatasetV1, DatasetV2
 
 
 class Canshu:
@@ -23,7 +25,7 @@ class Shujuchuli:
 
         self.__wenjianjia: str = wenjianjia
         self.__onehot: dict = {}
-        self.shujuji: Union[DatasetV1, DatasetV2] = Union
+        self.shujuji: BatchDataset = Any
         self.shape = None
 
         self.__shengcheng_zidian()
@@ -48,8 +50,10 @@ class Shujuchuli:
         for dangqianwenjianjia, wenjianjias, wenjians in os.walk(self.__wenjianjia):
             for wenjian in wenjians:
                 linshiwenjian = tensorflow.io.read_file(os.path.join(dangqianwenjianjia, wenjian))
+                linshiwenjian = tensorflow.image.decode_image(contents=linshiwenjian, dtype=tensorflow.float32)
+                linshiwenjian = linshiwenjian / 127.5 - 1
                 lsbiaoqian = dangqianwenjianjia.split('/')[-1]
-                yield tensorflow.image.decode_bmp(contents=linshiwenjian), self.__onehot[lsbiaoqian]
+                yield linshiwenjian, self.__onehot[lsbiaoqian]
 
     def shengcheng_shujuji(self):
         """
@@ -58,20 +62,21 @@ class Shujuchuli:
         self.shujuji = tensorflow.data.Dataset.from_generator(
             generator=self.__tupian_generator,
             output_types=(tensorflow.dtypes.float32, tensorflow.dtypes.float32),
-        ).batch(30)
+            output_shapes=((2052, 2592, 1), 7),
+        ).batch(batch_size=3)
 
 
 shujuchuli = Shujuchuli(Canshu.wenjianjia_xunlian)
 shujuchuli.shengcheng_shujuji()
-ls = shujuchuli.shujuji.as_numpy_iterator().next()
+
 #############################################################################################
 # 构建模型
 #############################################################################################
 
 moxing = tensorflow.keras.Sequential()
-moxing.add(tensorflow.keras.layers.Input(shujuchuli.shujuji))
+moxing.add(tensorflow.keras.layers.Input(shape=(2052, 2592, 1)))
 moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomFlip('horizontal'))
-moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomRotation(0.2))
+moxing.add(tensorflow.keras.layers.experimental.preprocessing.RandomRotation(1))
 moxing.add(tensorflow.keras.layers.Conv2D(32, (3, 3), activation='relu'))
 moxing.add(tensorflow.keras.layers.MaxPooling2D((2, 2)))
 moxing.add(tensorflow.keras.layers.Conv2D(64, (3, 3), activation='relu'))
@@ -79,7 +84,7 @@ moxing.add(tensorflow.keras.layers.MaxPooling2D((2, 2)))
 moxing.add(tensorflow.keras.layers.Conv2D(64, (3, 3), activation='relu'))
 moxing.add(tensorflow.keras.layers.Flatten())
 moxing.add(tensorflow.keras.layers.Dense(64, activation='relu'))
-moxing.add(tensorflow.keras.layers.Dense(shujuchuli.yangben_zhongleishu()))
+moxing.add(tensorflow.keras.layers.Dense(shujuchuli.yangben_zhongleishu(), activation='softmax'))
 
 moxing.summary()
 
@@ -92,7 +97,7 @@ moxing.compile(
 moxing.fit(
     x=shujuchuli.shujuji,
     epochs=1,
-    verbose=1,
+    verbose=1
 )
 
 #############################################################################################
