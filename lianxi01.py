@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from tensorflow import keras
 from tensorflow.keras.preprocessing import image
-from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 
 
 #############################################################################################
@@ -17,7 +18,7 @@ class canshu:
 
 xunlian_shuju = image.DirectoryIterator(
     directory=canshu.wenjianjia_xunlian,
-    image_data_generator=ImageDataGenerator(
+    image_data_generator=image.ImageDataGenerator(
         data_format='channels_first',
         dtype='float64'
     )
@@ -60,9 +61,13 @@ moxing.compile(
     metrics=['accuracy']
 )
 
+log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
 moxing.fit(
     x=xunlian_shuju,
     epochs=15,
+    callbacks=[tensorboard_callback]
 )
 
 #############################################################################################
@@ -71,10 +76,11 @@ moxing.fit(
 
 ceshi_shuju = image.DirectoryIterator(
     directory=canshu.wenjianjia_ceshi,
-    image_data_generator=ImageDataGenerator(data_format='channels_first', dtype='float64'),
+    image_data_generator=image.ImageDataGenerator(data_format='channels_first', dtype='float64'),
 )
 
 moxing.evaluate(
     x=ceshi_shuju,
-    verbose=2
+    verbose=2,
+    callbacks=[tensorboard_callback]
 )
