@@ -4,6 +4,7 @@ from typing import Any
 import tensorflow
 from tensorflow.python.data.ops.dataset_ops import BatchDataset
 
+
 #############################################################################################
 # 参数
 #############################################################################################
@@ -25,7 +26,6 @@ class Shujuchuli:
         self.__wenjianjia: str = wenjianjia
         self.__onehot: dict = {}
         self.shujuji: BatchDataset = Any
-        self.shape = None
 
         self.__shengcheng_zidian()
 
