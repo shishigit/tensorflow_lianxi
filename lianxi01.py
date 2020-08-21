@@ -53,7 +53,6 @@ class Shujuchuli:
                 linshiwenjian = tensorflow.image.decode_image(contents=linshiwenjian, dtype=tensorflow.float32)
                 linshiwenjian = tensorflow.concat([linshiwenjian, self.__zero, self.__zero], axis=2)
                 lsbiaoqian = dangqianwenjianjia.split('/')[-1]
-                print('eeeeeeeeeeeee')
                 yield linshiwenjian, self.__onehot[lsbiaoqian]
 
     def shengcheng_shujuji(self):
