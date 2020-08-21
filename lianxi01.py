@@ -40,14 +40,10 @@ class Shujuchuli:
 
     def __tupian_generator(self):
         for dangqianwenjianjia, wenjianjias, wenjians in os.walk(self.__wenjianjia):
-            print(dangqianwenjianjia)
             for wenjian in wenjians:
                 linshiwenjian = tensorflow.io.read_file(os.path.join(dangqianwenjianjia, wenjian))
                 lsbiaoqian = dangqianwenjianjia.split('/')[-1]
-                yield tensorflow.image.decode_image(
-                    contents=linshiwenjian,
-                    dtype=tensorflow.dtypes.float32,
-                ), self.__onehot[lsbiaoqian]
+                yield tensorflow.image.decode_bmp(contents=linshiwenjian, ), self.__onehot[lsbiaoqian]
 
     def huoqu_shujuji(self):
         """
@@ -61,7 +57,8 @@ class Shujuchuli:
 
 shujuchuli = Shujuchuli(Canshu.wenjianjia_xunlian)
 ls = shujuchuli.huoqu_shujuji()
-print(ls.take(1).as_numpy_iterator().next())
+ls = ls.take(1).as_numpy_iterator().next()
+print('')
 #############################################################################################
 # 构建模型
 #############################################################################################
