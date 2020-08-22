@@ -1,5 +1,4 @@
-from datetime import datetime
-
+import kerastuner as kt
 from tensorflow import keras
 from tensorflow.keras.preprocessing import image
 
@@ -41,46 +40,83 @@ qianyimoxing = keras.applications.MobileNetV2(
 )
 qianyimoxing.trainable = False
 
-shuru = keras.layers.Input(shape=xunlian_shuju.image_shape)
-x = keras.layers.experimental.preprocessing.Rescaling(1. / 127.5, offset=-1)(shuru)
-x = keras.layers.experimental.preprocessing.RandomFlip()(x)
-x = keras.layers.experimental.preprocessing.RandomRotation(0.1)(x)
-x = qianyimoxing(x, training=False)
-x = keras.layers.GlobalAveragePooling2D()(x)
-x = keras.layers.Dense(100, activation=keras.activations.relu)(x)
-x = keras.layers.Dropout(0.2)(x)
-shuchu = keras.layers.Dense(xunlian_shuju.num_classes, activation='softmax')(x)
 
-moxing = keras.Model(shuru, shuchu)
+def shengchengmoxing(hp):
+    shuru = keras.layers.Input(shape=xunlian_shuju.image_shape)
+    x = keras.layers.experimental.preprocessing.Rescaling(1. / 127.5)(shuru)
+    x = x - 1
+    x = keras.layers.experimental.preprocessing.RandomFlip()(x)
+    x = keras.layers.experimental.preprocessing.RandomRotation(0.1)(x)
+    x = qianyimoxing(x, training=False)
+    x = keras.layers.GlobalAveragePooling2D()(x)
+    hp_units = hp.Int('units', min_value=32, max_value=512, step=32)
+    x = keras.layers.Dense(hp_units, activation=keras.activations.relu)(x)
+    x = keras.layers.Dropout(0.2)(x)
+    shuchu = keras.layers.Dense(xunlian_shuju.num_classes, activation='softmax')(x)
 
-moxing.summary()
+    moxing = keras.Model(shuru, shuchu)
 
-moxing.compile(
-    optimizer='adam',
-    loss=keras.losses.CategoricalCrossentropy(),
-    metrics=['accuracy']
-)
+    hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
 
-log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    moxing.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+        loss=keras.losses.CategoricalCrossentropy(),
+        metrics=['accuracy']
+    )
+    return moxing
 
-moxing.fit(
-    x=xunlian_shuju,
-    epochs=15,
-    callbacks=[tensorboard_callback]
-)
 
-#############################################################################################
-# 测试
-#############################################################################################
+tuner = kt.Hyperband(shengchengmoxing,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3,
+                     directory='my_dir',
+                     project_name='intro_to_kt')
+
+# class ClearTrainingOutput(keras.callbacks.Callback):
+#     def on_train_end(*args, **kwargs):
+#         display.clear_output(wait=True)
+
 
 ceshi_shuju = image.DirectoryIterator(
     directory=canshu.wenjianjia_ceshi,
     image_data_generator=image.ImageDataGenerator(data_format='channels_first', dtype='float64'),
 )
 
-moxing.evaluate(
-    x=ceshi_shuju,
-    verbose=2,
-    callbacks=[tensorboard_callback]
-)
+tuner.search(xunlian_shuju, epochs=10, validation_data=ceshi_shuju,
+             # callbacks=[ClearTrainingOutput()]
+             )
+
+# Get the optimal hyperparameters
+best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+
+print(f"""
+The hyperparameter search is complete. The optimal number of units in the first densely-connected
+layer is {best_hps.get('units')} and the optimal learning rate for the optimizer
+is {best_hps.get('learning_rate')}.
+""")
+
+# Build the model with the optimal hyperparameters and train it on the data
+model = tuner.hypermodel.build(best_hps)
+model.fit(xunlian_shuju, epochs=10, validation_data=ceshi_shuju)
+# moxing = shengchengmoxing()
+# moxing.summary()
+#
+# log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+#
+# moxing.fit(
+#     x=xunlian_shuju,
+#     epochs=15,
+#     callbacks=[tensorboard_callback]
+# )
+
+#############################################################################################
+# 测试
+#############################################################################################
+
+# moxing.evaluate(
+#     x=ceshi_shuju,
+#     verbose=2,
+#     callbacks=[tensorboard_callback]
+# )
