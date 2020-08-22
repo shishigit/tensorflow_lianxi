@@ -73,21 +73,17 @@ tuner = kt.Hyperband(shengchengmoxing,
                      directory='my_dir',
                      project_name='intro_to_kt')
 
-# class ClearTrainingOutput(keras.callbacks.Callback):
-#     def on_train_end(*args, **kwargs):
-#         display.clear_output(wait=True)
-
-
 ceshi_shuju = image.DirectoryIterator(
     directory=canshu.wenjianjia_ceshi,
     image_data_generator=image.ImageDataGenerator(data_format='channels_first', dtype='float64'),
 )
 
-tuner.search(xunlian_shuju, epochs=10, validation_data=ceshi_shuju,
-             # callbacks=[ClearTrainingOutput()]
-             )
+tuner.search(
+    xunlian_shuju,
+    epochs=10,
+    validation_data=ceshi_shuju
+)
 
-# Get the optimal hyperparameters
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 
 print(f"""
@@ -96,27 +92,5 @@ layer is {best_hps.get('units')} and the optimal learning rate for the optimizer
 is {best_hps.get('learning_rate')}.
 """)
 
-# Build the model with the optimal hyperparameters and train it on the data
 model = tuner.hypermodel.build(best_hps)
 model.fit(xunlian_shuju, epochs=10, validation_data=ceshi_shuju)
-# moxing = shengchengmoxing()
-# moxing.summary()
-#
-# log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-#
-# moxing.fit(
-#     x=xunlian_shuju,
-#     epochs=15,
-#     callbacks=[tensorboard_callback]
-# )
-
-#############################################################################################
-# 测试
-#############################################################################################
-
-# moxing.evaluate(
-#     x=ceshi_shuju,
-#     verbose=2,
-#     callbacks=[tensorboard_callback]
-# )
