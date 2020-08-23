@@ -36,7 +36,7 @@ tuner = Hyperband(
 )
 
 tuner.search(
-    xunlian_shuju,
+    x=xunlian_shuju,
     epochs=15,
     validation_data=ceshi_shuju
 )
